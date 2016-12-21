@@ -1,17 +1,20 @@
 package com.example.zhang.inkspill;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private Rect[][] rects;
@@ -29,16 +32,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setMax(20);
         init();
         layout = (LinearLayout) findViewById(R.id.root);
         view = new MyView(this);
-        view.postInvalidate();
+        view.invalidate();
         layout.addView(view);
+        layout.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Toast.makeText(MainActivity.this, "重新来过！" ,Toast.LENGTH_SHORT).show();
+                init();
+                view.invalidate();
+                return false;
+            }
+        });
 
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        progressBar.setMax(20);
-        progress = 20;
-        progressBar.setProgress(progress);
+
 
         findViewById(R.id.btnBlue).setOnClickListener(this);
         findViewById(R.id.btnGreen).setOnClickListener(this);
@@ -113,7 +124,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btnBlue).setBackgroundColor(Color.BLUE);
         findViewById(R.id.btnGrey).setBackgroundColor(Color.GRAY);
         findViewById(R.id.btnGreen).setBackgroundColor(Color.GREEN);
-
+        progress = 20;
+        progressBar.setProgress(progress);
 
         rects = new Rect[N][M];
         colors = new int[N][M];
@@ -162,6 +174,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 //            invalidate();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add("关于");
+        menu.add("帮助");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        final AlertDialog.Builder normalDialog =
+                new AlertDialog.Builder(MainActivity.this);
+        normalDialog.setTitle("关于");
+        normalDialog.setMessage("");
+        normalDialog.setPositiveButton("确定",null);
+        normalDialog.show();
+        return super.onOptionsItemSelected(item);
     }
 
 }
