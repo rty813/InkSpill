@@ -1,6 +1,8 @@
 package com.example.zhang.inkspill;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnYellow;
     private Button btnRed;
     private Button btnGreen;
+    private ProgressDialog dialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +57,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (!packageInfo.versionName.equals(updateinfo.getVersion())){
                         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                         builder.setIcon(android.R.drawable.ic_dialog_info);
+                        builder.setTitle("请升级InkSpill至版本" + updateinfo.getVersion());
+                        builder.setMessage(updateinfo.getDescription());
+                        builder.setCancelable(false);
+                        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialog = new ProgressDialog(MainActivity.this);
+                                dialog.setTitle("正在下载");
+                                dialog.setMessage("请稍后...");
+                                dialog.setProgress(0);
+                                dialog.show();
 
+                            }
+                        });
                     }
 
                 } catch (PackageManager.NameNotFoundException e) {
