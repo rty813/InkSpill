@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -25,15 +26,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout layout;
     private ProgressBar progressBar;
     private int progress;
+    private final int maxProgress = 30;
     private final int[] dx = new int[]{0, 0, -1, 1};
     private final int[] dy = new int[]{1, -1, 0, 0};
-
+    private Button btnBlue;
+    private Button btnGray;
+    private Button btnYellow;
+    private Button btnRed;
+    private Button btnGreen;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        progressBar.setMax(20);
+        progressBar.setMax(maxProgress);
         init();
         layout = (LinearLayout) findViewById(R.id.root);
         view = new MyView(this);
@@ -42,22 +48,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         layout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                Toast.makeText(MainActivity.this, "重新来过！" ,Toast.LENGTH_SHORT).show();
                 init();
                 view.invalidate();
+                btnBlue.setEnabled(true);
+                btnYellow.setEnabled(true);
+                btnGray.setEnabled(true);
+                btnRed.setEnabled(true);
+                btnGreen.setEnabled(true);
                 return false;
             }
         });
 
+        btnBlue = (Button) findViewById(R.id.btnBlue);
+        btnGreen = (Button) findViewById(R.id.btnGreen);
+        btnRed = (Button) findViewById(R.id.btnRed);
+        btnGray = (Button) findViewById(R.id.btnGrey);
+        btnYellow = (Button) findViewById(R.id.btnYellow);
 
-
-        findViewById(R.id.btnBlue).setOnClickListener(this);
-        findViewById(R.id.btnGreen).setOnClickListener(this);
-        findViewById(R.id.btnRed).setOnClickListener(this);
-        findViewById(R.id.btnGrey).setOnClickListener(this);
-        findViewById(R.id.btnYellow).setOnClickListener(this);
-
-
+        btnBlue.setOnClickListener(this);
+        btnGreen.setOnClickListener(this);
+        btnRed.setOnClickListener(this);
+        btnGray.setOnClickListener(this);
+        btnYellow.setOnClickListener(this);
     }
 
     @Override
@@ -87,12 +99,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         progress --;
         progressBar.setProgress(progress);
         if (progress == 0){
-            Toast.makeText(MainActivity.this, "胜败乃兵家常事，大侠请重新来过！", Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this, "胜败乃兵家常事，大侠请重新来过！长按屏幕重置", Toast.LENGTH_LONG).show();
+            btnBlue.setEnabled(false);
+            btnYellow.setEnabled(false);
+            btnGray.setEnabled(false);
+            btnRed.setEnabled(false);
+            btnGreen.setEnabled(false);
         }
         changeColor(0, 0, preColor, nowColor);
         view.invalidate();
         if (check(nowColor)){
-            Toast.makeText(MainActivity.this,"哇啊偶！你真棒！",Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this,"哇啊偶！你真棒！长按屏幕重置",Toast.LENGTH_LONG).show();
+            btnBlue.setEnabled(false);
+            btnYellow.setEnabled(false);
+            btnGray.setEnabled(false);
+            btnRed.setEnabled(false);
+            btnGreen.setEnabled(false);
         }
     }
 
@@ -124,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btnBlue).setBackgroundColor(Color.BLUE);
         findViewById(R.id.btnGrey).setBackgroundColor(Color.GRAY);
         findViewById(R.id.btnGreen).setBackgroundColor(Color.GREEN);
-        progress = 20;
+        progress = maxProgress;
         progressBar.setProgress(progress);
 
         rects = new Rect[N][M];
@@ -178,8 +200,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add("关于");
-        menu.add("帮助");
+        menu.add(1,101,1,"关于");
+        menu.add(1,102,1,"帮助");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -187,11 +209,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
         final AlertDialog.Builder normalDialog =
                 new AlertDialog.Builder(MainActivity.this);
-        normalDialog.setTitle("关于");
-        normalDialog.setMessage("");
-        normalDialog.setPositiveButton("确定",null);
-        normalDialog.show();
-        return super.onOptionsItemSelected(item);
+        switch (item.getItemId()) {
+            case 101:
+                normalDialog.setTitle("关于");
+                normalDialog.setMessage("By 上古豆腐 QQ:523213189");
+                normalDialog.setPositiveButton("确定", null);
+                normalDialog.show();
+                break;
+            case 102:
+                normalDialog.setTitle("帮助");
+                normalDialog.setMessage("这么简单的游戏怎么会有帮助？");
+                normalDialog.setPositiveButton("确定", null);
+                normalDialog.show();
+                break;
+        }
+        return false;
     }
 
 }
