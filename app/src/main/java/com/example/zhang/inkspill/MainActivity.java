@@ -1,6 +1,8 @@
 package com.example.zhang.inkspill;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -40,8 +42,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Updateinfo updateinfo = new UpdateinfoService().getUpdateinfo();
-        Toast.makeText(this,updateinfo.getVersion(),Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Updateinfo updateinfo = new UpdateinfoService().getUpdateinfo();
+                if (updateinfo == null)
+                    return;
+                try{
+                    PackageManager packageManager = getPackageManager();
+                    PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+                    if (!packageInfo.versionName.equals(updateinfo.getVersion())){
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                        builder.setIcon(android.R.drawable.ic_dialog_info);
+
+                    }
+
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(maxProgress);
@@ -230,13 +250,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         return false;
     }
-//    public class myAsynctask extends AsyncTask{
-//
-//        @Override
-//        protected Object doInBackground(Object[] objects) {
-//
-//            return null;
-//        }
-//    }
+
+
+    public class myAsynctask extends AsyncTask<String, String, Void>{
+        @Override
+        protected Void doInBackground(String... strings) {
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(String... values) {
+
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
 
 }

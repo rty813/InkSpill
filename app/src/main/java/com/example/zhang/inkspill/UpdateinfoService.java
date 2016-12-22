@@ -16,7 +16,7 @@ public class UpdateinfoService {
     public Updateinfo getUpdateinfo(){
         StringBuilder builder = new StringBuilder();
         try {
-            String serviceUrl = "zhangjinyang.com.cn/update";
+            String serviceUrl = "http://zhangjinyang.com.cn/update";
             URL url = new URL(serviceUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
