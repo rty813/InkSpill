@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -38,6 +39,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Updateinfo updateinfo = new UpdateinfoService().getUpdateinfo();
+        Toast.makeText(this,updateinfo.getVersion(),Toast.LENGTH_SHORT).show();
+
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(maxProgress);
         init();
@@ -225,5 +230,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         return false;
     }
+//    public class myAsynctask extends AsyncTask{
+//
+//        @Override
+//        protected Object doInBackground(Object[] objects) {
+//
+//            return null;
+//        }
+//    }
 
 }
