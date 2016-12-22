@@ -3,14 +3,19 @@ package com.example.zhang.inkspill;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -20,6 +25,17 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.InterfaceAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -40,44 +56,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btnRed;
     private Button btnGreen;
     private ProgressDialog dialog;
+    private Updateinfo updateinfo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Updateinfo updateinfo = new UpdateinfoService().getUpdateinfo();
-                if (updateinfo == null)
-                    return;
-                try{
-                    PackageManager packageManager = getPackageManager();
-                    PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
-                    if (!packageInfo.versionName.equals(updateinfo.getVersion())){
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setIcon(android.R.drawable.ic_dialog_info);
-                        builder.setTitle("请升级InkSpill至版本" + updateinfo.getVersion());
-                        builder.setMessage(updateinfo.getDescription());
-                        builder.setCancelable(false);
-                        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                dialog = new ProgressDialog(MainActivity.this);
-                                dialog.setTitle("正在下载");
-                                dialog.setMessage("请稍后...");
-                                dialog.setProgress(0);
-                                dialog.show();
-
-                            }
-                        });
-                    }
-
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        new updateThread().start();
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(maxProgress);
@@ -267,23 +252,97 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
 
+    public class updateThread extends Thread{
+        public void run(){
+            updateinfo = new UpdateinfoService().getUpdateinfo();
+            if (updateinfo.getVersion().equals("Unknown Version!")){
+                return;
+            }
+            if (updateinfo == null)
+                return;
+            try{
+                PackageManager packageManager = getPackageManager();
+                PackageInfo packageInfo = packageManager.getPackageInfo(getPackageName(), 0);
+                if (!packageInfo.versionName.equals(updateinfo.getVersion())){
+                    handler.sendEmptyMessage(0);
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
-    public class myAsynctask extends AsyncTask<String, String, Void>{
+    private Handler handler = new Handler(){
+//        @Override
+        public void handleMessage(Message msg) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setIcon(android.R.drawable.ic_dialog_info);
+            builder.setTitle("请升级InkSpill至版本" + updateinfo.getVersion());
+            builder.setMessage(updateinfo.getDescription());
+            builder.setCancelable(false);
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialog = new ProgressDialog(MainActivity.this);
+                    dialog.setTitle("正在下载");
+                    dialog.setMessage("请稍后...");
+                    dialog.setProgress(0);
+                    dialog.show();
+                    new DownloadAsynctask().execute(updateinfo.getDownloadUrl());
+                }
+            });
+            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                }
+            });
+            builder.show();
+        };
+    };
+
+    public class DownloadAsynctask extends AsyncTask<String, Void, Void>{
         @Override
         protected Void doInBackground(String... strings) {
+            try {
+                URL url = new URL(strings[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                InputStream inputStream = connection.getInputStream();
+                byte[] buffer = new byte[1024];
+                int len = 0;
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                while ((len = inputStream.read(buffer)) != -1){
+                    bos.write(buffer, 0, len);
+                }
+                bos.close();
+                byte[] getData = bos.toByteArray();
+                File saveDir = new File(Environment.getExternalStorageDirectory(),"InkSpill.apk");
+                FileOutputStream fos = new FileOutputStream(saveDir);
+                fos.write(getData);
+                if (fos != null){
+                    fos.close();
+                }
+                if (inputStream != null){
+                    inputStream.close();
+                }
+                System.out.println("Download Success");
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
 
             return null;
         }
 
         @Override
-        protected void onProgressUpdate(String... values) {
-
-            super.onProgressUpdate(values);
-        }
-
-        @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            dialog.cancel();
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.fromFile(new File(Environment.getExternalStorageDirectory(),"InkSpill.apk")),
+                    "application/vnd.android.package-archive");
+            startActivity(intent);
         }
     }
 

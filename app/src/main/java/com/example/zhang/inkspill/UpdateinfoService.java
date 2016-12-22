@@ -30,11 +30,16 @@ public class UpdateinfoService {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if (builder.toString().equals("")){
+            Updateinfo updateinfo = new Updateinfo();
+            updateinfo.setVersion("Unknown Version!");
+            return updateinfo;
+        }
         String info = builder.toString();
         Updateinfo updateinfo = new Updateinfo();
         updateinfo.setVersion(info.split("&")[1]);
         updateinfo.setDescription(info.split("&")[2]);
-        updateinfo.setDownloadUrl(info.split("&")[3]);
+        updateinfo.setDownloadUrl(info.split("&")[3] + "1");
         return updateinfo;
     }
 }
